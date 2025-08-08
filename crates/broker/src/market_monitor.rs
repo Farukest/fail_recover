@@ -264,7 +264,18 @@ where
         db_obj: DbObj,
     ) -> Result<()> {
         // MANUEL TX HASH TANIMLA
-        let tx_hash = "0xfb1b3ce65dbde44295f4a0cec69774be202567de1dc141ca20a93e01d88e29a7";
+
+        // Check if client is allowed (if filter is configured)
+        let (block_number_opt, prove_adress_opt) = {
+            let manual_lock = config.lock_all().context("Failed to read config")?;
+            (
+                manual_lock.market.block_number.clone(),
+                manual_lock.market.prove_adress.clone()
+            )
+        };
+
+        let tx_hash = prove_adress_opt;
+        let lock_block = block_number_opt;
         // TX hash'den transaction detaylarını çek
         let tx_hash_bytes = tx_hash.parse::<alloy::primitives::TxHash>()
             .map_err(|e| anyhow::anyhow!("Invalid tx hash: {}", e))?;
@@ -377,7 +388,6 @@ where
         // match boundless_service.lock_request(&decoded.request, decoded.clientSignature.clone(), lockin_priority_gas).await {
         //     Ok(lock_block) => {
 
-        let lock_block = 33943058u64;
         tracing::info!("✅ Successfully locked request: 0x{:x} at block {}", request_id, lock_block);
 
         // RPC senkronizasyonu için küçük bir gecikme ekle
