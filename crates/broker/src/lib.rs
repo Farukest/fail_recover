@@ -957,7 +957,7 @@ where
         critical_cancel_token: CancellationToken,
     ) -> Result<(), anyhow::Error> {
         // 2 hour max to shutdown time, to avoid indefinite shutdown time.
-        const SHUTDOWN_GRACE_PERIOD_SECS: u32 = 12 * 60 * 60;
+        const SHUTDOWN_GRACE_PERIOD_SECS: u32 = 120 * 60 * 60;
         const SLEEP_DURATION: std::time::Duration = std::time::Duration::from_secs(10);
 
         let start_time = std::time::Instant::now();
