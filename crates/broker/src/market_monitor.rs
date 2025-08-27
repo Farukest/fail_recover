@@ -438,14 +438,14 @@ where
         if let Err(e) = db_obj.insert_accepted_request(&final_order, lock_price).await {
             tracing::error!("Failed to insert accepted request: {:?}", e);
         }
-            // }
-            // Err(err) => {
-            //     tracing::info!("❌ Failed to lock request: 0x{:x}, error: {}", request_id, err);
-            //
-            //     if let Err(e) = db_obj.insert_skipped_request(&new_order).await {
-            //         tracing::info!("Failed to insert skipped request: {:?}", e);
-            //     }
-            // }
+        // }
+        // Err(err) => {
+        //     tracing::info!("❌ Failed to lock request: 0x{:x}, error: {}", request_id, err);
+        //
+        //     if let Err(e) = db_obj.insert_skipped_request(&new_order).await {
+        //         tracing::info!("Failed to insert skipped request: {:?}", e);
+        //     }
+        // }
         // }
 
         Ok(())

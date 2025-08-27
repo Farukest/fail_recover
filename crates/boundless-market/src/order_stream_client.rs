@@ -167,11 +167,41 @@ impl AuthMsg {
             "{} wants you to sign in with your Ethereum account:\n{}\n\nBoundless Order Stream\n\nURI: {}\nVersion: 1\nChain ID: 1\nNonce: {}\nIssued At: {}",
             origin.authority(), signer.address(), origin, nonce.nonce, Utc::now().to_rfc3339(),
         );
+
+
+        // LOG BURAYA:
+        println!("🔍 RUST - origin.authority(): {}", origin.authority());
+        println!("🔍 RUST - signer.address(): {}", signer.address());
+        println!("🔍 RUST - origin: {}", origin);
+        println!("🔍 RUST - nonce.nonce: {}", nonce.nonce);
+        println!("🔍 RUST - timestamp: {}", Utc::now().to_rfc3339());
+        println!("📝 RUST - SIWE Message String:\n{}", message);    // LOG BURAYA:
+        println!("🔍 RUST - origin.authority(): {}", origin.authority());
+        println!("🔍 RUST - signer.address(): {}", signer.address());
+        println!("🔍 RUST - origin: {}", origin);
+        println!("🔍 RUST - nonce.nonce: {}", nonce.nonce);
+        println!("🔍 RUST - timestamp: {}", Utc::now().to_rfc3339());
+        println!("📝 RUST - SIWE Message String:\n{}", message);
+
         let message: SiweMsg = message.parse()?;
+
+        // LOG BURAYA:
+        println!("🔍 RUST - Parsed SIWE domain: {:?}", message.domain);
+        println!("🔍 RUST - Parsed SIWE address: {:?}", message.address);
+        println!("🔍 RUST - Parsed SIWE statement: {:?}", message.statement);
+        println!("🔍 RUST - Parsed SIWE uri: {:?}", message.uri);
+        println!("🔍 RUST - Parsed SIWE version: {:?}", message.version);
+        println!("🔍 RUST - Parsed SIWE chain_id: {:?}", message.chain_id);
+        println!("🔍 RUST - Parsed SIWE nonce: {:?}", message.nonce);
+        println!("🔍 RUST - Parsed SIWE issued_at: {:?}", message.issued_at);
 
         let signature = signer
             .sign_hash(&message.eip191_hash().context("Failed to generate eip191 hash")?.into())
             .await?;
+
+        // LOG BURAYA:
+        println!("🔍 RUST - EIP191 hash: {:?}", message.eip191_hash());
+        println!("🔍 RUST - Signature: {:?}", signature);
 
         Ok(Self { message, signature })
     }
@@ -296,10 +326,16 @@ impl OrderStreamClient {
     pub async fn get_nonce(&self, address: Address) -> Result<Nonce> {
         let url = self.base_url.join(AUTH_GET_NONCE)?.join(&address.to_string())?;
         let res = self.client.get(url).send().await?;
+        // LOG BURAYA:
+        println!("🔍 RUST - Nonce response status: {}", res.status());
+        println!("🔍 RUST - Nonce response headers: {:?}", res.headers());
+
         if !res.status().is_success() {
             anyhow::bail!("Http error {} fetching nonce", res.status())
         }
         let nonce = res.json().await?;
+        // LOG BURAYA:
+        println!("🔍 RUST - Received nonce: {:?}", nonce);
 
         Ok(nonce)
     }
@@ -320,11 +356,15 @@ impl OrderStreamClient {
             .context("Failed to fetch nonce from order-stream")?;
 
         let auth_msg = AuthMsg::new(nonce, &self.base_url, signer).await?;
-
+        // LOG BURAYA:
+        println!("🔐 RUST - Final AuthMsg message: {:?}", auth_msg.message);
+        println!("🔐 RUST - Final AuthMsg signature: {:?}", auth_msg.signature);
         // Serialize the `AuthMsg` to JSON
         let auth_json =
             serde_json::to_string(&auth_msg).context("failed to serialize auth message")?;
-
+        // LOG BURAYA:
+        println!("📦 RUST - Serialized AuthMsg JSON: {}", auth_json);
+        println!("📦 RUST - JSON length: {} characters", auth_json.len());
         // Construct the WebSocket URL
         let host = self.base_url.host().context("missing host")?.to_string();
         // Select TLS vs not
@@ -335,6 +375,13 @@ impl OrderStreamClient {
             None => format!("{ws_scheme}://{host}{ORDER_WS_PATH}"),
         };
 
+        // LOG BURAYA:
+        println!("🔗 RUST - WebSocket URL: {}", ws_url);
+        println!("🔗 RUST - base_url.host(): {:?}", self.base_url.host());
+        println!("🔗 RUST - base_url.port(): {:?}", self.base_url.port());
+        println!("🔗 RUST - base_url.scheme(): {}", self.base_url.scheme());
+
+
         // Create the WebSocket request
         let mut request =
             ws_url.clone().into_client_request().context("failed to create request")?;
@@ -342,15 +389,27 @@ impl OrderStreamClient {
             .headers_mut()
             .insert("X-Auth-Data", auth_json.parse().context("failed to parse auth message")?);
 
+        // LOG BURAYA:
+        println!("📡 RUST - Request headers: {:?}", request.headers());
+        println!("📡 RUST - X-Auth-Data header: {:?}", request.headers().get("X-Auth-Data"));
+
         // Connect to the WebSocket server and return the socket
         let (socket, _) = match connect_async(request).await {
             Ok(res) => res,
             Err(tokio_tungstenite::tungstenite::Error::Http(err)) => {
+
+                // LOG BURAYA:
+                println!("❌ RUST - HTTP Error status: {:?}", err.status());
+                println!("❌ RUST - HTTP Error headers: {:?}", err.headers());
+
                 let http_err = if let Some(http_body) = err.body() {
                     String::from_utf8_lossy(http_body)
                 } else {
                     "Empty http error body".into()
                 };
+                // LOG BURAYA:
+                println!("❌ RUST - HTTP Error body: {}", http_err);
+
                 anyhow::bail!(
                     "Failed to connect to ws endpoint ({}): {} {}",
                     ws_url,
@@ -359,6 +418,9 @@ impl OrderStreamClient {
                 );
             }
             Err(err) => {
+                // LOG BURAYA:
+                println!("❌ RUST - WebSocket connection error: {:?}", err);
+
                 anyhow::bail!(
                     "Failed to connect to ws endpoint ({}): {} {}",
                     ws_url,

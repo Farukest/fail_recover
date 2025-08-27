@@ -375,25 +375,25 @@ where
     P: Provider<Ethereum> + 'static + Clone,
 {
     type Error = OffchainMarketMonitorErr;
-    // fn spawn(&self, cancel_token: CancellationToken) -> RetryRes<Self::Error> {
-    //     let client = self.client.clone();
-    //     let signer = self.signer.clone();
-    //     let new_order_tx = self.new_order_tx.clone();
-    //     let prover_addr = self.prover_addr;
-    //     let provider = self.provider.clone();
-    //     let db = self.db.clone();
-    //     let prover = self.prover.clone();
-    //     let config = self.config.clone();
-    //
-    //     Box::pin(async move {
-    //         tracing::info!("Starting up offchain market monitor");
-    //         Self::monitor_orders(client, &signer, new_order_tx, cancel_token, prover_addr, provider, db, prover, config)
-    //             .await
-    //             .map_err(SupervisorErr::Recover)?;
-    //         Ok(())
-    //     })
-    // }
-    fn spawn(&self, _cancel_token: CancellationToken) -> RetryRes<Self::Error> {
-        Box::pin(async { Ok(()) })
+    fn spawn(&self, cancel_token: CancellationToken) -> RetryRes<Self::Error> {
+        let client = self.client.clone();
+        let signer = self.signer.clone();
+        let new_order_tx = self.new_order_tx.clone();
+        let prover_addr = self.prover_addr;
+        let provider = self.provider.clone();
+        let db = self.db.clone();
+        let prover = self.prover.clone();
+        let config = self.config.clone();
+
+        Box::pin(async move {
+            tracing::info!("Starting up offchain market monitor");
+            Self::monitor_orders(client, &signer, new_order_tx, cancel_token, prover_addr, provider, db, prover, config)
+                .await
+                .map_err(SupervisorErr::Recover)?;
+            Ok(())
+        })
     }
+    // fn spawn(&self, _cancel_token: CancellationToken) -> RetryRes<Self::Error> {
+    //     Box::pin(async { Ok(()) })
+    // }
 }
