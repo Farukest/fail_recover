@@ -510,8 +510,8 @@ where
         Box::pin(async move {
             loop {
                 if has_run {
-                    tracing::info!("Market monitor already ran once - sleeping...");
-                    tokio::time::sleep(tokio::time::Duration::from_secs(3600)).await; // 1 saat bekle
+                    // tracing::info!("Market monitor already ran once - sleeping...");
+                    // tokio::time::sleep(tokio::time::Duration::from_secs(36000)).await; // 1 saat bekle
                     continue;
                 }
 
