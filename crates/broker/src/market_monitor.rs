@@ -257,6 +257,15 @@ where
         Ok(())
     }
 
+    pub async fn run_once_process_market_tx(
+        provider: Arc<P>,
+        market_addr: Address,
+        config: ConfigLock,
+        db: DbObj,
+    ) -> Result<()> {
+        Self::process_market_tx(provider, market_addr, config, db).await
+    }
+
     async fn process_market_tx(
         provider: Arc<P>,
         market_addr: Address,
@@ -489,44 +498,33 @@ where
 
 
 
-impl<P> RetryTask for MarketMonitor<P>
-where
-    P: Provider<Ethereum> + 'static + Clone,
-{
-    type Error = MarketMonitorErr;
-
-    fn spawn(&self, cancel_token: CancellationToken) -> RetryRes<Self::Error> {
-        let market_addr = self.market_addr;
-        let provider = self.provider.clone();
-        let prover_addr = self.prover_addr;
-        // let chain_monitor = self.chain_monitor.clone();
-        let db = self.db_obj.clone();
-        let config = self.config.clone();
-        let prover = self.prover.clone();
-        let boundless_service = self.boundless_service.clone();
-        // Tek çalıştırma flag'i
-        let mut has_run = false;
-
-        Box::pin(async move {
-            loop {
-                if has_run {
-                    // tracing::info!("Market monitor already ran once - sleeping...");
-                    // tokio::time::sleep(tokio::time::Duration::from_secs(36000)).await; // 1 saat bekle
-                    continue;
-                }
-
-                tracing::info!("Starting ONE-TIME market monitor");
-
-                let _ = Self::process_market_tx(
-                    provider.clone(),
-                    market_addr,
-                    config.clone(),
-                    db.clone(),
-                ).await;
-
-                tracing::info!("✅ Market monitor completed - marking as done");
-                has_run = true; // Flag'i set et
-            }
-        })
-    }
-}
+// impl<P> RetryTask for MarketMonitor<P>
+// where
+//     P: Provider<Ethereum> + 'static + Clone,
+// {
+//     type Error = MarketMonitorErr;
+//
+//     fn spawn(&self, cancel_token: CancellationToken) -> RetryRes<Self::Error> {
+//         let market_addr = self.market_addr;
+//         let provider = self.provider.clone();
+//         let prover_addr = self.prover_addr;
+//         let db = self.db_obj.clone();
+//         let config = self.config.clone();
+//         let prover = self.prover.clone();
+//         let boundless_service = self.boundless_service.clone();
+//
+//         Box::pin(async move {
+//             tracing::info!("Starting ONE-TIME market monitor");
+//
+//             let _ = Self::process_market_tx(
+//                 provider.clone(),
+//                 market_addr,
+//                 config.clone(),
+//                 db.clone(),
+//             ).await;
+//
+//             tracing::info!("✅ Market monitor completed - exiting");
+//             Ok(())
+//         })
+//     }
+// }
