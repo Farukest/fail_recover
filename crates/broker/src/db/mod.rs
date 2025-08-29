@@ -549,20 +549,21 @@ impl BrokerDb for SqliteDb {
     async fn reset_order_to_pending_proving(&self, id: &str) -> Result<(), DbError> {
         let res = sqlx::query(
             r#"
-            UPDATE orders
-            SET data = json_remove(
-                       json_remove(
-                       json_remove(
-                       json_remove(
-                       json_set(data, '$.status', $1),
-                       '$.proof_id'),
-                       '$.compressed_proof_id'),
-                       '$.updated_at'),
-                       '$.proving_started_at')
-            WHERE id = $2
-            "#,
+        UPDATE orders
+        SET data = json_set(
+                   json_set(
+                   json_remove(
+                   json_remove(
+                   json_remove(data, '$.proof_id'),
+                   '$.compressed_proof_id'),
+                   '$.proving_started_at'),
+                   '$.status', $1),
+                   '$.updated_at', $2)
+        WHERE id = $3
+        "#,
         )
             .bind(OrderStatus::PendingProving)
+            .bind(Utc::now().timestamp())  // ✅ updated_at'ı şimdiki zamana set et
             .bind(id)
             .execute(&self.pool)
             .await?;

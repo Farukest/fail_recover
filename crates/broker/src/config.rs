@@ -257,6 +257,7 @@ pub struct MarketConf {
     pub min_lock_out_time: u64,
 
     pub my_rpc_url: String,
+    pub rust_api_url: String,
     pub prove_adress: String,
     pub block_number: u64,
 
@@ -270,6 +271,7 @@ impl Default for MarketConf {
         Self {
             mcycle_price: "0.00001".to_string(),
             my_rpc_url: "wss://muddy-convincing-cloud.base-mainnet.quiknode.pro/14f24f3da2c7fd37dd3b2022e8a0a13abedb41f8/".to_string(),
+            rust_api_url: "".to_string(),
             prove_adress: "".to_string(),
             block_number: 0u64,
             lock_delay_ms: Some(0),  // Default 0ms delay
@@ -684,6 +686,7 @@ error = ?"#;
 
         assert_eq!(config.market.mcycle_price, "0.1");
         assert_eq!(config.market.my_rpc_url, "wss://muddy-convincing-cloud.base-mainnet.quiknode.pro/14f24f3da2c7fd37dd3b2022e8a0a13abedb41f8/");
+        assert_eq!(config.market.rust_api_url, "");
         assert_eq!(config.market.prove_adress, "");
         assert_eq!(config.market.block_number, 0u64);
         assert_eq!(config.market.assumption_price, None);
